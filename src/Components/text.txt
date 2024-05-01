@@ -1,0 +1,1087 @@
+import React, { useState } from 'react';
+import Lannavbar from './Lannavbar';
+
+function Signup() {
+    const [formData, setFormData] = useState({
+        firstname: '',
+        lastname: '',
+        email: '',
+        phone_number: '',
+        password: '',
+        c_password: ''
+    });
+    const [errorMessage, setErrorMessage] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (formData.password !== formData.c_password) {
+            setErrorMessage('Password and Confirm Password must match.');
+            setSuccessMessage('');
+            return;
+        }
+        try {
+            const response = await fetch('http://127.0.0.1:5000/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setSuccessMessage(data.message);
+                setErrorMessage('');
+                setFormData({
+                    firstname: '',
+                    lastname: '',
+                    email: '',
+                    phone_number: '',
+                    password: '',
+                    c_password: ''
+                }); // Reset form fields after successful signup
+            } else {
+                throw new Error('Signup failed');
+            }
+        } catch (error) {
+            console.error('Error during signup:', error.message);
+            setErrorMessage('An error occurred during signup.');
+            setSuccessMessage('');
+        }
+    };
+
+    return (
+        <div>
+            <Lannavbar />
+            <section className="signupForm" id='signup'>
+                <h1>Signup Form</h1>
+                <form onSubmit={handleSubmit}>
+                    {errorMessage && <div className="error-message">{errorMessage}</div>}
+                    {successMessage && <div className="success-message">{successMessage}</div>}
+                    <div>
+                        <div className="formControl">
+                            <label htmlFor="fname">Firstname:</label>
+                            <input type="text" name="firstname" value={formData.firstname} onChange={handleChange} placeholder='Enter Firstname..' required />
+                        </div>
+                        <div className="formControl">
+                            <label htmlFor="lname">Lastname:</label>
+                            <input type="text" name="lastname" value={formData.lastname} onChange={handleChange} placeholder='Enter Lastname..' required />
+                        </div>
+                        <div className="formControl">
+                            <label htmlFor="email">Email:</label>
+                            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder='Enter Email..' required />
+                        </div>
+                        <div className="formControl">
+                            <label htmlFor="pnumber">Phonenumber:</label>
+                            <input type="number" name="phone_number" value={formData.phone_number} onChange={handleChange} placeholder='Enter Phonenumber..' required />
+                        </div>
+                        <div className="formControl">
+                            <label htmlFor="password">Password:</label>
+                            <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder='Enter Password..' required />
+                        </div>
+                        <div className="formControl">
+                            <label htmlFor="c_password">Confirm password:</label>
+                            <input type="password" name="c_password" value={formData.c_password} onChange={handleChange} placeholder='Enter Confirm Password' required />
+                        </div>
+                    </div>
+                    <div className="signupbtn">
+                        <button type="submit" className='btn btn-primary'>Create Account</button>
+                        <span>Already have an account? <a href="/login">Login</a>&nbsp;here</span>
+                    </div>
+                </form>
+            </section>
+        </div>
+    );
+}
+
+export default Signup;
+
+
+
+
+import React, { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import Lannavbar from './Lannavbar';
+
+function Login() {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const history = useNavigate();
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await fetch('http://localhost:5000/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
+            });
+            const data = await response.json();
+            if (response.ok) {
+                localStorage.setItem('token', data.access_token);
+                history(getRedirectPath(data.user_role));
+            } else {
+                // Handle login errors
+                console.log(data.message);
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+        }
+    };
+
+    const getRedirectPath = (userRole) => {
+        console.log("User Role:", userRole);
+        switch (userRole) {
+            case 'user':
+                return '/homepage';
+            case 'admin':
+                return '/admin_page';
+            case 'recruiter':
+                return '/recruiterpage';
+            default:
+                return '/';
+        }
+    };
+    
+
+    return (
+        <div>
+            <Lannavbar />
+            <section className="signupForm">
+                <h1>Login Form</h1>
+                <form onSubmit={handleSubmit}>
+                    <div>
+                        <div className="formControl">
+                            <label htmlFor="Email">Email:</label>
+                            <input type="email" name="email" placeholder='Enter Email..' value={email} onChange={(e) => setEmail(e.target.value)} />
+                        </div>
+                        <div className="formControl">
+                            <label htmlFor="Password">Password:</label>
+                            <input type="password" name="password" placeholder='Enter Password..' value={password} onChange={(e) => setPassword(e.target.value)} />
+                        </div>
+                    </div>
+                    <div className="signupbtn">
+                        <button type="submit" className='btn btn-primary'>Login</button>
+                        <p style={{ marginTop: '10px' }}>Don’t have an account?<NavLink to="/signup">Signup</NavLink>&nbsp;here</p>
+                        <NavLink to="/fpassword">Forgot password?</NavLink>
+                    </div>
+                </form>
+            </section>
+        </div>
+    );
+}
+
+export default Login;
+
+
+import React, { useState, useEffect } from 'react';
+import { Table, Button, Modal, Form } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
+
+function Recruiter() {
+    const [jobs, setJobs] = useState([]);
+    const [showModal, setShowModal] = useState(false);
+    const [selectedJob, setSelectedJob] = useState(null);
+    const [formData, setFormData] = useState({
+        JobTitle: '',
+        company_employees: '',
+        job_prefer_skills: '',
+        job_salary: '',
+        About_the_job: '',
+        preferred_qualification: '',
+        job_Responsibilities: '',
+        company_location: '',
+        company_workplace: '',
+        job_type: '',
+        company_logo: ''
+    });
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const fetchData = async () => {
+        try {
+            const response = await fetch('http://localhost:5000/get_job_applications', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setJobs(data);
+            } else {
+                console.log('Failed to fetch jobs:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Fetch data error:', error);
+        }
+    };
+
+    const handleAdd = () => {
+        setShowModal(true);
+    };
+    const handleEdit = (job) => {
+        setSelectedJob(job);
+        setShowModal(true);
+        setFormData({
+            JobTitle: job.JobTitle,
+            company_employees: job.company_employees,
+            job_prefer_skills: job.job_prefer_skills,
+            job_salary: job.job_salary,
+            About_the_job: job.About_the_job,
+            preferred_qualification: job.preferred_qualification,
+            job_Responsibilities: job.job_Responsibilities,
+            company_location: job.company_location,
+            company_workplace: job.company_workplace,
+            job_type: job.job_type,
+            company_logo: job.company_logo
+        });
+    };
+    
+    // const handleEdit = (job) => {
+    //     setSelectedJob(job);
+    //     setShowModal(true);
+    // };
+
+    const handleDelete = async (jobId) => {
+        try {
+            const response = await fetch(`http://localhost:5000/delete_jobPosting/${jobId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            if (response.ok) {
+                console.log('Job deleted successfully');
+                fetchData(); // Fetch updated job data
+            } else {
+                const data = await response.json();
+                console.log('Failed to delete job:', data.message);
+            }
+        } catch (error) {
+            console.error('Delete job error:', error);
+        }
+    };
+
+    const handleCloseModal = () => {
+        setShowModal(false);
+        setSelectedJob(null);
+        setFormData({
+            JobTitle: '',
+            company_employees: '',
+            job_prefer_skills: '',
+            job_salary: '',
+            About_the_job: '',
+            preferred_qualification: '',
+            job_Responsibilities: '',
+            company_location: '',
+            company_workplace: '',
+            job_type: '',
+            company_logo: ''
+        });
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            let url = 'http://localhost:5000/job_poistion';
+            let method = 'POST';
+    
+            if (selectedJob) {
+                url = `http://localhost:5000/update_jobPosting/${selectedJob.id}`;
+                method = 'PUT';
+            }
+    
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify(formData)
+            });
+    
+            if (response.ok) {
+                console.log(selectedJob ? 'Job updated successfully' : 'Job added successfully');
+                fetchData(); // Fetch updated job data
+                handleCloseModal();
+            } else {
+                const data = await response.json();
+                console.log('Failed to add/update job:', data.message);
+            }
+        } catch (error) {
+            console.error('Add/update job error:', error);
+        }
+    };
+    
+    return (
+        <div>
+            <h1>Recruiter</h1>
+            <Button variant="primary" onClick={handleAdd}>Add Job</Button>
+            <Table striped bordered hover>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Job Title</th>
+                        <th>Company</th>
+                        <th>Location</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {jobs.map(job => (
+                        <tr key={job.id}>
+                            <td>{job.id}</td>
+                            <td>{job.JobTitle}</td>
+                            <td>{job.company_employees}</td>
+                            <td>{job.company_location}</td>
+                            <td>
+                                <Button variant="primary" onClick={() => handleEdit(job)}>Edit</Button>
+                                <Button variant="danger" onClick={() => handleDelete(job.id)}>Delete</Button>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </Table>
+
+            <Modal show={showModal} onHide={handleCloseModal}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Add Job Posting</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form onSubmit={handleSubmit}>
+                        <Form.Group controlId="formJobTitle">
+                            <Form.Label>Job Title</Form.Label>
+                            <Form.Control type="text" name="JobTitle" value={formData.JobTitle} onChange={handleChange} />
+                        </Form.Group>
+                        <Form.Group controlId="formCompanyEmployees">
+                            <Form.Label>Company Employees</Form.Label>
+                            <Form.Control type="text" name="company_employees" value={formData.company_employees} onChange={handleChange} />
+                        </Form.Group>
+                        <Form.Group controlId="formJobPreferSkills">
+                            <Form.Label>Job Prefer Skills</Form.Label>
+                            <Form.Control type="text" name="job_prefer_skills" value={formData.job_prefer_skills} onChange={handleChange} />
+                        </Form.Group>
+                        <Form.Group controlId="formJobSalary">
+                            <Form.Label>Job Salary</Form.Label>
+                            <Form.Control type="text" name="job_salary" value={formData.job_salary} onChange={handleChange} />
+                        </Form.Group>
+                        <Form.Group controlId="formAboutTheJob">
+                            <Form.Label>About the Job</Form.Label>
+                            <Form.Control as="textarea" rows={3} name="About_the_job" value={formData.About_the_job} onChange={handleChange} />
+                        </Form.Group>
+                        <Form.Group controlId="formPreferredQualification">
+                            <Form.Label>Preferred Qualification</Form.Label>
+                            <Form.Control type="text" name="preferred_qualification" value={formData.preferred_qualification} onChange={handleChange} />
+                        </Form.Group>
+                        <Form.Group controlId="formJobResponsibilities">
+                            <Form.Label>Job Responsibilities</Form.Label>
+                            <Form.Control as="textarea" rows={3} name="job_Responsibilities" value={formData.job_Responsibilities} onChange={handleChange} />
+                        </Form.Group>
+                        <Form.Group controlId="formCompanyLocation">
+                            <Form.Label>Company Location</Form.Label>
+                            <Form.Control type="text" name="company_location" value={formData.company_location} onChange={handleChange} />
+                        </Form.Group>
+                        <Form.Group controlId="formCompanyWorkplace">
+                            <Form.Label>Company Workplace</Form.Label>
+                            <Form.Select name="company_workplace" value={formData.company_workplace} onChange={handleChange}>
+                                <option value="">Select Workplace</option>
+                                <option value="on-site">On-site</option>
+                                <option value="Hybrid">Hybrid</option>
+                                <option value="WorkfromHome">Work from Home</option>
+                            </Form.Select>
+                        </Form.Group>
+
+                        <Form.Group controlId="formJobType">
+                            <Form.Label>Job Type</Form.Label>
+                            <Form.Select name="job_type" value={formData.job_type} onChange={handleChange}>
+                                <option value="">Select Job Type</option>
+                                <option value="Full-time">Full-time</option>
+                                <option value="Part-time">Part-time</option>
+                            </Form.Select>
+                        </Form.Group>
+                        <Form.Group controlId="formCompanyLogo">
+                            <Form.Label>Company Logo</Form.Label>
+                            <Form.Control type="text" name="company_logo" value={formData.company_logo} onChange={handleChange} />
+                        </Form.Group>
+                        <Button variant="primary" type="submit" >Submit</Button>
+                    </Form>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleCloseModal}>Close</Button>
+                </Modal.Footer>
+            </Modal>
+        </div>
+    );
+}
+
+export default Recruiter;
+
+
+
+import React, { useState, useEffect } from 'react';
+import { Table, Button, Modal, Form } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
+
+function Admin() {
+    const [users, setUsers] = useState([]);
+    const [showModal, setShowModal] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [newRole, setNewRole] = useState('');
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const fetchData = async () => {
+        try {
+            const response = await fetch('http://localhost:5000/get_all_user', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setUsers(data);
+            } else {
+                console.log('Failed to fetch users:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Fetch data error:', error);
+        }
+    };
+
+    const handleEdit = (user) => {
+        setSelectedUser(user);
+        setNewRole(user.user_role);
+        setShowModal(true);
+    };
+
+    const handleUpdateRole = async () => {
+        try {
+            const response = await fetch(`http://localhost:5000/update_user_role/${selectedUser.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ new_role: newRole })
+            });
+            if (response.ok) {
+                console.log('User role updated successfully');
+                fetchData(); // Fetch updated user data
+            } else {
+                const data = await response.json();
+                console.log('Failed to update user role:', data.message);
+            }
+        } catch (error) {
+            console.error('Update role error:', error);
+        } finally {
+            setShowModal(false);
+        }
+    };
+
+    return (
+        <div>
+            <h1>Admin</h1>
+            <Table striped bordered hover>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Email</th>
+                        <th>User Role</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {users.map(user => (
+                        <tr key={user.id}>
+                            <td>{user.id}</td>
+                            <td>{user.firstname}</td>
+                            <td>{user.lastname}</td>
+                            <td>{user.email}</td>
+                            <td>{user.user_role}</td>
+                            <td>
+                                <Button variant="primary" onClick={() => handleEdit(user)}>Edit</Button>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </Table>
+
+            <Modal show={showModal} onHide={() => setShowModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Edit User Role</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form.Control type="text" value={newRole} onChange={(e) => setNewRole(e.target.value)} />
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
+                    <Button variant="primary" onClick={handleUpdateRole}>Save Changes</Button>
+                </Modal.Footer>
+            </Modal>
+        </div>
+    );
+}
+
+export default Admin;
+
+
+import React, { useState, useEffect } from 'react';
+import '../assets/css/homepage.css'
+import Google from '../assets/images/google.jpeg'
+import Homenavbar from './Homenavbar'
+
+function Homepage() {
+  const [jobs, setJobs] = useState([]);
+
+  useEffect(() => {
+      fetchJobs();
+  }, []);
+
+  const fetchJobs = async () => {
+      try {
+          const response = await fetch('http://localhost:5000/getalljobs');
+          if (response.ok) {
+              const data = await response.json();
+              setJobs(data);
+          } else {
+              console.error('Failed to fetch jobs:', response.statusText);
+          }
+      } catch (error) {
+          console.error('Fetch jobs error:', error);
+      }
+  };
+
+  return (
+    <div className="homepage">
+      <Homenavbar/>
+      <section className="jobSection">
+        <div className="jobDetails">
+          <div className="jobleftdetails">
+          {jobs.map(job => (
+                            <ul key={job.id}>
+                                <li>
+                                    <div className="jdetails">
+                  <img src={Google} alt="" />
+                                        <h3 className="jobtitle">{job.JobTitle}</h3>
+                                        </div>
+                                        <p className="companytitle"><span>Company name:</span>{job.company_employees}</p>
+                                        <p className="leftlocation">{job.company_location} ({job.company_workplace})</p>
+                                </li>
+                            </ul>
+                        ))}
+            <ul>
+              <li>
+                <div className="jdetails">
+                  <img src={Google} alt="" />
+                  <h3 className="jobtitle">Cloud Sales Resident, Cloud Academy, Early Career (English)</h3>
+                </div>
+                <p className="companytitle"><span>Company name:</span>Google</p>
+                <p className="leftlocation">Chicago, IL (On-site)</p>
+              </li>
+            </ul>
+            <ul>
+              <li>
+                <div className="jdetails">
+                  <img src={Google} alt="" />
+                  <h3 className="jobtitle">Cloud Sales Resident, Cloud Academy, Early Career (English)</h3>
+                </div>
+                <p className="companytitle"><span>Company name:</span>Google</p>
+                <p className="leftlocation">Chicago, IL (On-site)</p>
+              </li>
+            </ul>
+            <ul>
+              <li>
+                <div className="jdetails">
+                  <img src={Google} alt="" />
+                  <h3 className="jobtitle">Cloud Sales Resident, Cloud Academy, Early Career (English)</h3>
+                </div>
+                <p className="companytitle"><span>Company name:</span>Google</p>
+                <p className="leftlocation">Chicago, IL (On-site)</p>
+              </li>
+            </ul>
+            <ul>
+              <li>
+                <div className="jdetails">
+                  <img src={Google} alt="" />
+                  <h3 className="jobtitle">Cloud Sales Resident, Cloud Academy, Early Career (English)</h3>
+                </div>
+                <p className="companytitle"><span>Company name:</span>Google</p>
+                <p className="leftlocation">Chicago, IL (On-site)</p>
+              </li>
+            </ul>
+            <ul>
+              <li>
+                <div className="jdetails">
+                  <img src={Google} alt="" />
+                  <h3 className="jobtitle">Cloud Sales Resident, Cloud Academy, Early Career (English)</h3>
+                </div>
+                <p className="companytitle"><span>Company name:</span>Google</p>
+                <p className="leftlocation">Chicago, IL (On-site)</p>
+              </li>
+            </ul>
+            <ul>
+              <li>
+                <div className="jdetails">
+                  <img src={Google} alt="" />
+                  <h3 className="jobtitle">Cloud Sales Resident, Cloud Academy, Early Career (English)</h3>
+                </div>
+                <p className="companytitle"><span>Company name:</span>Google</p>
+                <p className="leftlocation">Chicago, IL (On-site)</p>
+              </li>
+            </ul>
+            <ul>
+              <li>
+                <div className="jdetails">
+                  <img src={Google} alt="" />
+                  <h3 className="jobtitle">Cloud Sales Resident, Cloud Academy, Early Career (English)</h3>
+                </div>
+                <p className="companytitle"><span>Company name:</span>Google</p>
+                <p className="leftlocation">Chicago, IL (On-site)</p>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="jobdata">
+          <div className="jobdata1step">
+            <h3>Cloud Sales Resident, Cloud Academy, Early Career (English)</h3>
+            <div className="jobicon">
+              <span class="material-symbols-outlined">
+                work
+              </span>
+              <p><span className="jobspace">On-site</span>.<span className="jobtype">Full-time</span>. <span className="joblevel">Entrylevel</span></p>
+            </div>
+            <div className="jobicon">
+              <span class="material-symbols-outlined">
+                apartment
+              </span>
+              <p><span className="jobspace">5,001-10,000 employees</span>.<span className="jobtype">IT Services and IT Consultinge</span></p>
+            </div>
+            <div className="jobicon">
+              <span class="material-symbols-outlined">
+                format_list_bulleted
+              </span>
+              <p><span className="jobspace">Skills:</span>.<span className="jobtype">React.js, TypeScript, React.js, TypeScript</span></p>
+            </div>
+            <div className="jobicon">
+              <span class="material-symbols-outlined">
+                payments
+              </span>
+              <p><span className="jobspace">$40K/yr - $60K/yr</span></p>
+            </div>
+            <div className="applybtn">
+              <button className='btn btn-primary'>
+                Apply
+                <span id='oo' class="material-symbols-outlined">
+                  open_in_new
+                </span>
+              </button>
+              <button className='btn btn-success'>Save</button>
+            </div>
+          </div>
+          <div className="jobdescription">
+            <h1>About the job</h1>
+            <div className="aboutjobdetails">
+              The Cloud Sales Academy is for applicants who can start in August 2024.
+
+              The application window will be open from March 18, 2024 to April 1, 2024
+
+              This role does not offer work authorization sponsorship.
+
+              Note: By applying to this position you will have an opportunity to share your preferred working location from the following: Atlanta, GA, USA; Chicago, IL, USA.Minimum qualifications:
+
+              Bachelor's degree or equivalent practical experience.
+              Experience in customer service, sales, or customer relationship management.
+              Ability to communicate in English fluently to support client relationship management in this region.
+            </div>
+            <div className="prefereedQualification">
+              <h5>Preferred qualifications:</h5>
+              <p>
+                Certification in the Google Cloud industry.
+                Knowledge of business skills and methodologies.
+                Ability to learn, understand, and work with new emerging technologies, methodologies, and solutions in the cloud technology space.
+                Excellent problem-solving, written/verbal communication, and presentation skills.
+              </p>
+            </div>
+            <div className="responsibilites">
+              <h5>Responsibilities</h5>
+              <p>
+                Help Google Cloud customers achieve their business goals by providing strategic solutions and recommend digital transformation.
+                Enhance your communication with customers, building your personal brand and learning how to manage relationships with C-levels.
+                Use a mix of video calls, events, and personalized outreach to make connections and discover where we can make a real difference.
+                Partner with tenured Google business staff to drive customer attendance at marketing events, training, and other key activities to build awareness and education on Google’s solutions.
+              </p>
+            </div>
+            <div className="responsibilites">
+              <h5>Responsibilities</h5>
+              <p>
+                Help Google Cloud customers achieve their business goals by providing strategic solutions and recommend digital transformation.
+                Enhance your communication with customers, building your personal brand and learning how to manage relationships with C-levels.
+                Use a mix of video calls, events, and personalized outreach to make connections and discover where we can make a real difference.
+                Partner with tenured Google business staff to drive customer attendance at marketing events, training, and other key activities to build awareness and education on Google’s solutions.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+export default Homepage
+
+
+import React, { useEffect, useState } from 'react';
+import Homenavbar from './Homenavbar';
+import axios from 'axios';
+
+function Profile() {
+    const [userData, setUserData] = useState({});
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchUserData();
+    }, []);
+
+    const fetchUserData = async () => {
+        const token = localStorage.getItem('access_token');
+
+        if (token) {
+            try {
+                const response = await axios.get('http://localhost:5000/profile', {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+
+                if (response.status === 201) {
+                    // Assuming the response is an array with a single user object
+                    const user = response.data[0];
+                    setUserData(user);
+                    setLoading(false);
+                    console.log(user); // Log the user data
+                } else {
+                    console.log(response.data.message);
+                    setLoading(false);
+                }
+            } catch (error) {
+                console.error('Fetch user data error:', error);
+                setLoading(false);
+            }
+        }
+    };
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
+    return (
+        <div>
+            <Homenavbar />
+            {/* Your profile display code here */}
+            <h5>{userData.firstname} {userData.lastname}</h5>
+            <h6>{userData.profession}</h6>
+            <p>Email: {userData.email}</p>
+            <p>Phone: {userData.phone_number}</p> {/* Notice the change here */}
+            {/* ... rest of your profile display code */}
+        </div>
+    );
+}
+
+export default Profile;
+
+
+import React, { useState, useEffect } from 'react';
+import '../assets/css/homepage.css';
+import axios from 'axios';
+import Homenavbar from './Homenavbar';
+import Google from '../assets/images/google.jpeg';
+
+function Homepage() {
+  const [jobData, setJobData] = useState([]);
+  const [selectedJob, setSelectedJob] = useState(null);
+
+  useEffect(() => {
+    getJobs();
+  }, []);
+
+  const getJobs = async () => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      try {
+        const response = await axios.get('http://localhost:5000/getalljobs', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (response.status === 201) {
+          const data = response.data;
+          setJobData(data);
+          console.log(data);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  const handleJobClick = (job) => {
+    setSelectedJob(job);
+  };
+
+  return (
+    <div className="homepage">
+      <Homenavbar />
+      <section className="jobSection">
+        <div className="jobDetails">
+          <div className="jobleftdetails">
+            {jobData.length > 0 && jobData.map((job, index) => (
+              <ul key={index} onClick={() => handleJobClick(job)}>
+                <li>
+                  <div className="jdetails">
+                    <img src={Google} alt="" />
+                    <h3 className="jobtitle">{job.JobTitle}</h3>
+                  </div>
+                  <p className="companytitle"><span>Company name:</span>{job.company_location}</p>
+                  <p className="leftlocation">{job.company_location}</p>
+                </li>
+              </ul>
+            ))}
+          </div>
+        </div>
+
+        {selectedJob && (
+          <div className="jobdata">
+            <div className="jobdata1step">
+              <h3>{selectedJob.JobTitle}</h3>
+              <div className="jobicon">
+                <span className="material-symbols-outlined">work</span>
+                <p><span className="jobspace">{selectedJob.company_workplace}</span>.<span className="jobtype">{selectedJob.job_type}</span></p>
+              </div>
+              <div className="jobicon">
+                <span className="material-symbols-outlined">apartment</span>
+                <p><span className="jobspace">{selectedJob.company_employees} employees</span></p>
+              </div>
+              <div className="jobicon">
+                <span className="material-symbols-outlined">format_list_bulleted</span>
+                <p><span className="jobspace">Skills:</span>.<span className="jobtype">{selectedJob.job_prefer_skills}</span></p>
+              </div>
+              <div className="jobicon">
+                <span className="material-symbols-outlined">payments</span>
+                <p><span className="jobspace">${selectedJob.job_salary}/yr</span></p>
+              </div>
+              <div className="applybtn">
+                <button className='btn btn-primary'>
+                  Apply
+                  <span id='oo' className="material-symbols-outlined">open_in_new</span>
+                </button>
+                <button className='btn btn-success'>Save</button>
+              </div>
+            </div>
+            <div className="jobdescription">
+              <h1>About the job</h1>
+              <div className="aboutjobdetails">
+                {selectedJob.About_the_job}
+              </div>
+              <div className="prefereedQualification">
+                <h5>Preferred qualifications:</h5>
+                <p>
+                  {selectedJob.preferred_qualification.split(',').map((qualification, index) => (
+                    <span key={index}>{qualification}<br /></span>
+                  ))}
+                </p>
+              </div>
+              <div className="responsibilites">
+                <h5>Responsibilities</h5>
+                <p>
+                  {selectedJob.job_Responsibilities.split(',').map((responsibility, index) => (
+                    <span key={index}>{responsibility}<br /></span>
+                  ))}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+export default Homepage;
+
+
+
+
+
+
+
+
+
+import React,{useState,useEffect} from 'react'
+import '../assets/css/homepage.css'
+import Google from '../assets/images/google.jpeg'
+import Homenavbar from './Homenavbar'
+import axios from 'axios'
+
+function Homepage() {
+  const [jobdata, getJobdata] = useState([]);
+  const [savedJobs, setSavedJobs] = useState([]);
+  
+  useEffect(() => {
+    getJobs();
+    getSavedJobs();
+  }, []);
+
+  const getJobs = async () => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      try {
+        const response = await axios.get('http://localhost:5000/getalljobs', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (response.status === 200) {
+          getJobdata(response.data);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  const getSavedJobs = async () => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      try {
+        const response = await axios.get('http://localhost:5000/get_saved_jobs', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (response.status === 200) {
+          setSavedJobs(response.data);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  const saveJob = async (jobId) => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      try {
+        const response = await axios.post('http://localhost:5000/save_job', { job_id: jobId }, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (response.status === 201) {
+          getSavedJobs();
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  const removeSavedJob = async (jobId) => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      try {
+        const response = await axios.delete('http://localhost:5000/remove_saved_job', {
+          data: { job_id: jobId },
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (response.status === 200) {
+          getSavedJobs();
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
+  // Render saved jobs dynamically
+  const renderSavedJobs = () => {
+    return savedJobs.map(job => (
+      <ul key={job.id}>
+        <li>
+          <div className="jdetails">
+            <img src={Google} alt="" />
+            <h3 className="jobtitle">{job.JobTitle}</h3>
+          </div>
+          <p className="companytitle"><span>Company name:</span>Google</p>
+          <p className="leftlocation">Chicago, IL (On-site)</p>
+          <button className='btn btn-danger' onClick={() => removeSavedJob(job.id)}>Remove</button>
+        </li>
+      </ul>
+    ));
+  };
+
+  return (
+    <div className="homepage">
+      <Homenavbar />
+      <section className="jobSection">
+        <div className="jobDetails">
+          <div className="jobleftdetails">
+            {/* Render jobs */}
+            {jobdata.map(job => (
+              <ul key={job.id}>
+                <li>
+                  <div className="jdetails">
+                    <img src={Google} alt="" />
+                    <h3 className="jobtitle">{job.JobTitle}</h3>
+                  </div>
+                  <p className="companytitle"><span>Company name:</span>{job.job_salary}</p>
+                  <p className="leftlocation">Chicago, IL (On-site)</p>
+                  <button className='btn btn-success' onClick={() => saveJob(job.id)}>Save</button>
+                </li>
+              </ul>
+            ))}
+          </div>
+        </div>
+
+        <div className="jobdata">
+          {/* Display saved jobs */}
+          <div className="savedJobs">
+            <h2>Saved Jobs</h2>
+            {renderSavedJobs()}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+export default Homepage

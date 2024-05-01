@@ -1,0 +1,73 @@
+import axios from 'axios'; // We're bringing in a special tool called Axios to help us talk to other computers on the internet.
+
+const handleSubmit = async (e) => { // This is like a set of instructions for what to do when someone tries to sign up on our website.
+    e.preventDefault(); // When someone tries to sign up by pressing a button, we stop the computer from doing its usual thing of sending data and refreshing the page right away.
+    if (formData.password !== formData.c_password) { // We check if the password the person typed is the same as the confirmation password. If they're not the same, we tell the person that they need to match.
+        alert('Password and Confirm Password must match.');
+        return;
+    }
+    try {
+        const response = await axios.post('http://127.0.0.1:5000/signup', formData, { // Now, we're going to try to sign the person up. We're going to talk to our server (another computer) at a special address (http://127.0.0.1:5000/signup) and tell it the information the person typed in the form.
+            headers: {
+                'Content-Type': 'application/json' // We're telling the other computer that we're sending our data in a special format called JSON, so it can understand us better.
+            }
+        });
+        if (response.status === 200) { // We're waiting patiently for the other computer to talk back to us. While we wait, we're not going to do anything else. We're just going to watch for the response.
+            setFormData({ // If the other computer says everything went OK (status code 200), we're going to do a happy dance! We'll clear the form so it's ready for the next person, and we'll tell the person who signed up that everything worked.
+                firstname: '',
+                lastname: '',
+                email: '',
+                phone_number: '',
+                password: '',
+                c_password: ''
+            });
+            alert('Signup successful!');
+        } else { // If the other computer doesn't say everything went OK, we'll tell the person that something went wrong.
+            throw new Error('Signup failed');
+        }
+    } catch (error) { // Sometimes, things don't go as planned. Maybe the other computer is having a bad day or there's a problem with the internet. If something goes wrong, we'll try to figure out what happened and tell the person that there was a problem.
+        console.error('Error during signup:', error.message);
+        alert('An error occurred during signup.');
+    }
+};
+
+
+const handleSubmit = async (e) => { // This function might need to wait for something before it can finish.
+    e.preventDefault(); // This is a normal synchronous operation; it doesn't need to wait for anything.
+
+    // This is a synchronous operation; it doesn't need to wait for anything.
+    if (formData.password !== formData.c_password) {
+        alert('Password and Confirm Password must match.');
+        return;
+    }
+
+    try {
+        // This asynchronous operation might take some time; we're waiting for a response from the server.
+        const response = await axios.post('http://127.0.0.1:5000/signup', formData, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        // This is a synchronous operation; it doesn't need to wait for anything.
+        if (response.status === 200) {
+            // This is a synchronous operation; it doesn't need to wait for anything.
+            setFormData({
+                firstname: '',
+                lastname: '',
+                email: '',
+                phone_number: '',
+                password: '',
+                c_password: ''
+            });
+            alert('Signup successful!');
+        } else {
+            // This is a synchronous operation; it doesn't need to wait for anything.
+            throw new Error('Signup failed');
+        }
+    } catch (error) {
+        // This is a synchronous operation; it doesn't need to wait for anything.
+        console.error('Error during signup:', error.message);
+        alert('An error occurred during signup.');
+    }
+};

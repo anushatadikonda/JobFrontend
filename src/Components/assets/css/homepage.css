@@ -1,0 +1,388 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    width: 100%;
+    height: auto;
+    background-color: white;
+    font-family: "DM Sans", sans-serif;
+}
+
+.homepage_nav {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    padding-bottom: 0px;
+    /* box-shadow: -10px 10px 76px rgba(54, 128, 255, 0.404); */
+}
+
+.homepage_nav nav ul {
+    display: flex;
+    text-decoration: none;
+    list-style-type: none;
+}
+
+.homepage_nav ul li {
+    position: relative;
+    margin-right: 20px;
+    list-style-type: none;
+}
+
+.homepage_nav nav a {
+    text-decoration: none;
+    color: black;
+    text-transform: uppercase;
+    font-family: "DM Sans", sans-serif;
+    letter-spacing: 1px;
+}
+.dropdown-menu {
+    /* position: absolute; */
+    /* top: 100%; */
+    z-index: 1000;
+    display: none;
+    float: left;
+    min-width: 10rem;
+    font-size: 1rem;
+    color: #212529;
+    text-align: left;
+    list-style: none;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0, 0, 0, .15);
+    border-radius: .25rem;
+}
+.nav-link {
+    display: block;
+    padding:0;
+}
+#submenu {
+    left: 0;
+    position: absolute;
+    text-align: center;
+    top: 100%;
+    height: auto;
+    padding: 10px;
+    z-index: 1;
+    opacity: 0;
+    padding: 25px;
+    border: 2px solid black;
+    /* Add border to submenu items */
+    visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    background-color: rgb(255, 255, 255);
+}
+
+#submenu li {
+    border-bottom: 2px solid black;
+    margin-bottom: 10px;
+}
+
+#submenu li:last-child {
+    border-bottom: none;
+    /* Remove border from last submenu item */
+}
+
+#submenu li a {
+    color: rgb(41, 41, 41);
+    text-decoration: none;
+}
+
+.homepage_nav nav ul li:hover #submenu {
+    opacity: 1;
+    visibility: visible;
+}
+
+.homelogo {
+    display: inline-flex;
+}
+
+.homelogo span {
+    font-size: 28px;
+    font-weight: 700;
+    margin-right: 5px;
+    color: #000DFF;
+}
+
+.homelogo h2 {
+    font-family: "DM Sans", sans-serif;
+}
+
+.homelogo span,
+h2 {
+    font-size: xx-large;
+    margin-right: 5px;
+
+}
+
+.searchbars {
+    border: none;
+}
+
+.searchbars button {
+    border-radius: 25px;
+}
+
+.searchbars input {
+    margin-right: 10px;
+    padding: 5px;
+    border-radius: 25px;
+    letter-spacing: 1px;
+    margin-top: 5;
+    border: 1px solid rgba(0, 0, 0, 0.341);
+}
+
+.searchbars textarea:focus,
+input:focus {
+    outline: none;
+}
+
+/* jobscetion */
+
+.jobSection {
+    position: relative;
+    width: 100%;
+    height: auto;
+    display: flex;
+    gap: 50px;
+    margin-top: 25px;
+    padding: 20px;
+    font-family: "DM Sans", sans-serif;
+}
+
+.jobDetails {
+    width: 40%;
+}
+
+.jobleftdetails {
+    position: absolute;
+    width: 25%;
+    height: 80vh;
+    padding: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: 285px;
+    overflow-y: scroll;
+    background-color: white;
+    border: 2px solid rgba(85, 85, 85, 0.695);
+}
+
+.jdetails {
+    width: 100%;
+    display: flex;
+}
+
+.jdetails img {
+    width: 40px;
+    height: 40px;
+}
+
+.jdetails h3 {
+    font-size: 13px;
+    text-align: center;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.companytitle,
+.leftlocation {
+    font-size: small;
+    margin-bottom: 5px;
+}
+
+.jobleftdetails ul {
+    width: 100%;
+    list-style-type: none;
+    border-bottom: 2px solid rgba(90, 90, 90, 0.537);
+}
+
+.jobdata1step,
+.jobdescription {
+    width: 100%;
+    padding: 20px;
+}
+
+.jobdata {
+    width: 40%;
+    height: 80vh;
+    border: 1px solid black;
+    overflow-y: scroll;
+}
+
+.applybtn button {
+    margin-right: 15px;
+    margin-bottom: 0;
+}
+
+#oo {
+    font-size: large;
+    margin-left: 10px;
+    text-align: center;
+}
+
+.jobicon {
+    display: flex;
+}
+
+.jobicon p {
+    margin-left: 10px;
+    margin-bottom: 10px;
+}
+
+.jobdescription h1 {
+    font-size: x-large;
+}
+
+.aboutjobdetails {
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.prefereedQualification {
+    margin-bottom: 20px;
+}
+
+
+.emp-profile{
+    padding: 3%;
+    margin-top: 6%;
+    margin-bottom: 3%;
+    border-radius: 0.5rem;
+    background: #fff;
+}
+.profile-img{
+    text-align: center;
+}
+.profile-img img{
+    width: 70%;
+    height: 100%;
+}
+.profile-img .file {
+    position: relative;
+    overflow: hidden;
+    margin-top: -20%;
+    width: 70%;
+    border: none;
+    border-radius: 0;
+    font-size: 15px;
+    background: #212529b8;
+}
+.profile-img .file input {
+    position: absolute;
+    opacity: 0;
+    right: 0;
+    top: 0;
+}
+.profile-head h5{
+    color: #333;
+}
+.profile-head h6{
+    color: #0062cc;
+}
+.profile-edit-btn{
+    border: none;
+    border-radius: 1.5rem;
+    width: 70%;
+    padding: 2%;
+    font-weight: 600;
+    color: #6c757d;
+    cursor: pointer;
+}
+.proile-rating{
+    font-size: 12px;
+    color: #818182;
+    margin-top: 5%;
+}
+.proile-rating span{
+    color: #495057;
+    font-size: 15px;
+    font-weight: 600;
+}
+.profile-head .nav-tabs{
+    margin-bottom:5%;
+}
+.profile-head .nav-tabs .nav-link{
+    font-weight:600;
+    border: none;
+}
+.profile-head .nav-tabs .nav-link.active{
+    border: none;
+    border-bottom:2px solid #0062cc;
+    margin-right: 25px;
+    margin-left: 25px;
+}
+.profile-work{
+    padding: 14%;
+    margin-top: -15%;
+}
+.profile-work p{
+    font-size: 12px;
+    color: #818182;
+    font-weight: 600;
+    margin-top: 10%;
+}
+.profile-work NavLink{
+    text-decoration: none;
+    color: #495057;
+    font-weight: 600;
+    font-size: 14px;
+}
+.profile-work ul{
+    list-style: none;
+}
+.profile-tab label{
+    font-weight: 600;
+}
+.profile-tab p{
+    font-weight: 600;
+    color: #0062cc;
+}
+@media screen and (min-width:800px) {
+    .jobdata {
+        width: 40%;
+        height: 80vh;
+        border: 1px solid black;
+        overflow-y: scroll;
+        margin-left: 55px;
+    }
+}
+
+.fixed-sidebar .app-main .app-main__outer {
+    z-index: 9;
+    padding-left: 0;
+}
+
+/* Custom CSS for aligning header menu to the left and creating list items horizontally */
+
+.app-header-left {
+    display: flex;
+    margin-left:800px;
+}
+
+.header-menu {
+    display: flex;
+    list-style: none; /* Remove default list style */
+    margin: 0; /* Remove default margin */
+    padding: 0; /* Remove default padding */
+    justify-content: space-around;
+
+}
+
+.nav-item {
+    margin-right: 40px; /* Add margin between list items */
+
+}
+
+.nav-link {
+    color: #333; /* Set text color */
+    text-decoration: none; /* Remove underline */
+    transition: color 0.3s; /* Add transition effect */
+}
+
+.nav-link:hover {
+    color: #007bff; /* Change text color on hover */
+}
